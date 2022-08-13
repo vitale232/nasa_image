@@ -10,12 +10,13 @@ use std::io::Cursor;
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     dotenv::dotenv().ok();
+
     let api_key =
         String::from(env::var("NASA_API_KEY").expect("NASA_API_KEY must be set in `.env` file"));
     let url = format!("https://api.nasa.gov/planetary/apod?api_key={}", api_key);
-    let curs = get_image_as_curs(&url).await?;
 
-    let img = ImageReader::new(curs)
+    let imgcurs = get_imgcurs(&url).await?;
+    let img = ImageReader::new(imgcurs)
         .with_guessed_format()
         .unwrap()
         .decode()
@@ -27,16 +28,10 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-fn resize_img(img: DynamicImage) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
-    if img.height() > img.width() {
-        rotate90(&resize(&img, 135, 240, FilterType::Gaussian))
-    } else {
-        resize(&img, 240, 130, FilterType::Gaussian)
-    }
-}
+async fn get_imgcurs(url: &str) -> Result<Cursor<bytes::Bytes>, Error> {
+    let client = Client::new();
 
-async fn get_image_as_curs(url: &str) -> Result<Cursor<bytes::Bytes>, Error> {
-    let res = Client::new().get(url).send().await?.text().await?;
+    let res = client.get(url).send().await?.text().await?;
     let json: Value = serde_json::from_str(&res).unwrap();
 
     let img_url = json
@@ -44,7 +39,14 @@ async fn get_image_as_curs(url: &str) -> Result<Cursor<bytes::Bytes>, Error> {
         .expect("NASA API did not return `url`")
         .as_str()
         .unwrap();
-    let img = Client::new().get(img_url).send().await?.bytes().await?;
-
+    let img = client.get(img_url).send().await?.bytes().await?;
     Ok(Cursor::new(img))
+}
+
+fn resize_img(img: DynamicImage) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+    if img.height() > img.width() {
+        rotate90(&resize(&img, 135, 240, FilterType::Gaussian))
+    } else {
+        resize(&img, 240, 130, FilterType::Gaussian)
+    }
 }
