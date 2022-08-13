@@ -23,14 +23,12 @@ async fn main() -> Result<(), Error> {
 
     let smaller = resize_img(img);
     smaller.save("test.jpg").unwrap();
+
     Ok(())
 }
 
 fn resize_img(img: DynamicImage) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
-    let h = img.height();
-    let w = img.width();
-
-    if h > w {
+    if img.height() > img.width() {
         rotate90(&resize(&img, 135, 240, FilterType::Gaussian))
     } else {
         resize(&img, 240, 130, FilterType::Gaussian)
