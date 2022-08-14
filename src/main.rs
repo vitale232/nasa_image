@@ -10,15 +10,14 @@ use std::io::Cursor;
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     dotenv::dotenv().ok();
-
     let api_key =
         String::from(env::var("NASA_API_KEY").expect("NASA_API_KEY must be set in `.env` file"));
-    let url = format!(
+
+    let imgcurs = get_imgcurs(&format!(
         "https://api.nasa.gov/planetary/apod?thumbs=true&api_key={}",
         api_key
-    );
-
-    let imgcurs = get_imgcurs(&url).await?;
+    ))
+    .await?;
     let img = ImageReader::new(imgcurs)
         .with_guessed_format()
         .expect("Could not guess img format")
