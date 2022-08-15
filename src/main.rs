@@ -60,9 +60,9 @@ fn resize_img(img: DynamicImage) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
 }
 
 fn save_img(img: ImageBuffer<Rgba<u8>, Vec<u8>>) {
-    let now: DateTime<Utc> = Utc::now();
-    let fname = format!("{}{}{}.jpg", now.year(), now.month0(), now.day0(),);
+    let now: DateTime<Local> = Local::now();
     fs::create_dir_all("./imgs").expect("Could not make dir \"./imgs\"");
+    let fname = format!("{}.jpg", now.format("%Y%m%d"));
     img.save(Path::new(&format!("./imgs/{}", fname)))
         .expect("Could not save img!");
 }
