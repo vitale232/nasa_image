@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use image::imageops::{resize, rotate90, FilterType};
 use image::io::Reader as ImageReader;
 use image::{DynamicImage, ImageBuffer, Rgba};
@@ -5,7 +6,9 @@ use reqwest::{Client, Error};
 use serde_json::Value;
 
 use std::env;
+use std::fs;
 use std::io::Cursor;
+use std::path::Path;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -24,7 +27,7 @@ async fn main() -> Result<(), Error> {
         .expect("Could not decode img");
 
     let smaller = resize_img(img);
-    smaller.save("test.jpg").unwrap();
+    save_img(smaller);
 
     Ok(())
 }
@@ -54,4 +57,20 @@ fn resize_img(img: DynamicImage) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     } else {
         resize(&img, 240, 130, FilterType::Gaussian)
     }
+}
+
+fn save_img(img: ImageBuffer<Rgba<u8>, Vec<u8>>) {
+    let now: DateTime<Utc> = Utc::now();
+    let fname = format!(
+        "{}{}{}_{}{}{}.jpg",
+        now.year(),
+        now.month0(),
+        now.day0(),
+        now.hour(),
+        now.minute(),
+        now.second()
+    );
+    fs::create_dir_all("./imgs").expect("Could not make dir \"./imgs\"");
+    img.save(Path::new(&format!("./imgs/{}", fname)))
+        .expect("Could not save img!");
 }
