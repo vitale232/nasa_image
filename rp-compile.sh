@@ -1,4 +1,5 @@
-#/usr/bin/bash
+#/usr/bin/sh
+
 PI_IP=192.168.1.138
 TARGET=armv7-unknown-linux-gnueabihf
 
